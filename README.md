@@ -137,7 +137,7 @@ local res, err = request:request_uri(google_discovery_document_uri, {
   method = "GET",
   body = ngx.encode_args({
     client_id     = 424911365001.apps.googleusercontent.com,
-    response_type = code,
+    response_type = "code",
     scope         = "openid email",
     redirect_uri  = "https://oauth2-login-demo.example.com/code",
     state         = "TODO",
@@ -177,6 +177,60 @@ if want_state != have_state {
   ngx.exit(ngx.HTTP_FORBIDDEN)
 }
 ```
+
+## 4. Exchange code for access token and ID token
+
+The response includes a code parameter, a one-time authorization code that your server can exchange for an access token and ID token. Your server makes this exchange by sending an HTTPS `POST` request. The `POST` request is sent to the token endpoint, ~~which you should retrieve from the Discovery document using the key `token_endpoint`~~. The following discussion assumes the endpoint is https://www.googleapis.com/oauth2/v4/token. The request must include the following parameters in the `POST` body:
+
+- `code`	The authorization code that is returned from the initial request.
+- `client_id`	The client ID that you obtain from the API Console, as described in Obtain OAuth 2.0 credentials.
+- `client_secret`	The client secret that you obtain from the API Console, as described in Obtain OAuth 2.0 credentials.
+- `redirect_uri`	The URI that you specify in the API Console, as described in Set a redirect URI.
+- `grant_type`	This field must contain a value of `authorization_code`, as defined in the OAuth 2.0 specification.
+
+### Exchange Code Request
+
+```lua
+-- POST /oauth2/v4/token HTTP/1.1
+-- Host: www.googleapis.com
+-- Content-Type: application/x-www-form-urlencoded
+-- 
+-- code=4/P7q7W91a-oMsCeLvIaQm6bTrgtp7&
+-- client_id=8819981768.apps.googleusercontent.com&
+-- client_secret={client_secret}&
+-- redirect_uri=https://oauth2-login-demo.example.com/code&
+-- grant_type=authorization_code
+
+local google_token_endpoint = "https://accounts.google.com/o/oauth2/token"
+
+local request = http.new()
+request:set_timeout(7000)
+
+local res, err = request:request_uri(google_token_endpoint, {
+  method = "POST",
+  body = ngx.encode_args({
+    code          = authorization_code,
+    client_id     = client_id,
+    client_secret = client_secret,
+    redirect_uri  = cb_uri,
+    grant_type    = "authorization_code",
+  }),
+  headers = {
+    ["Content-Type"] = "application/x-www-form-urlencoded"
+  },
+  ssl_verify = true,
+})
+```
+
+### Exchange Code Response
+
+A successful response to this request contains the following fields in a JSON array:
+
+- `access_token`	A token that can be sent to a Google API.
+- `id_token`	A [JWT](http://openid.net/specs/draft-jones-json-web-token-07.html) that contains identity information about the user that is digitally signed by Google.
+- `expires_in`	The remaining lifetime of the access token.
+- `token_type`	Identifies the type of token returned. At this time, this field always has the value **Bearer**.
+- `refresh_token` (optional)	This field is only present if **access_type=offline** is included in the [authentication request](https://developers.google.com/identity/protocols/OpenIDConnect#sendauthrequest). For details, see [Refresh tokens](https://developers.google.com/identity/protocols/OpenIDConnect#refresh-tokens).
 
 ## 5. Obtain user information from the ID token
 
