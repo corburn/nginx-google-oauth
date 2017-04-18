@@ -33,18 +33,8 @@ local state = ngx.encode_base64(ngx.hmac_sha1(secret_key, cb_server_name .. emai
 
 The next step is forming an HTTPS `GET` request with the appropriate URI parameters. Note the use of HTTPS rather than HTTP in all the steps of this process; HTTP connections are refused. You should retrieve the base URI from the [Discovery document](https://developers.google.com/identity/protocols/OpenIDConnect#discovery) using the key `authorization_endpoint`. The following discussion assumes the base URI is https://accounts.google.com/o/oauth2/v2/auth.
 
-For a basic request, specify the following parameters:
-
-- `client_id`, which you obtain from the API Console.
-- `response_type`, which in a basic request should be code. (Read more at response_type.)
-- `scope`, which in a basic request should be openid email. (Read more at scope.)
-- `redirect_uri` should be the HTTP endpoint on your server that will receive the response from Google. You specify this URI in the API Console.
-- `state` should include the value of the anti-forgery unique session token, as well as any other information needed to recover the context when the user returns to your application, e.g., the starting URL. (Read more at state.)
-- `login_hint` can be the user's email address or the sub string, which is equivalent to the user's Google ID. If you do not provide a login_hint and the user is currently logged in, the consent screen includes a request for approval to release the user’s email address to your app. (Read more at login_hint.)
-- Use the `openid.realm` if you are migrating an existing application from OpenID 2.0 to OpenID Connect. For details, see Migrating off of OpenID 2.0.
-- Use the `hd` parameter to optimize the OpenID Connect flow for users of a particular G Suite domain. (Read more at hd.)
-
 ```lua
+-- TODO: retrieve base URI from the Google Discovery document
 -- https://developers.google.com/identity/protocols/OpenIDConnect#discovery
 local google_discovery_document_uri = "https://accounts.google.com/.well-known/openid-configuration"
 
@@ -107,6 +97,52 @@ local res, err = request:request_uri(google_discovery_document_uri, {
   "S256"
  ]
 }
+```
+
+For a basic request, specify the following parameters:
+
+- `client_id`, which you obtain from the API Console.
+- `response_type`, which in a basic request should be code. (Read more at response_type.)
+- `scope`, which in a basic request should be openid email. (Read more at scope.)
+- `redirect_uri` should be the HTTP endpoint on your server that will receive the response from Google. You specify this URI in the API Console.
+- `state` should include the value of the anti-forgery unique session token, as well as any other information needed to recover the context when the user returns to your application, e.g., the starting URL. (Read more at state.)
+- `login_hint` can be the user's email address or the sub string, which is equivalent to the user's Google ID. If you do not provide a login_hint and the user is currently logged in, the consent screen includes a request for approval to release the user’s email address to your app. (Read more at login_hint.)
+- Use the `openid.realm` if you are migrating an existing application from OpenID 2.0 to OpenID Connect. For details, see Migrating off of OpenID 2.0.
+- Use the `hd` parameter to optimize the OpenID Connect flow for users of a particular G Suite domain. (Read more at hd.)
+
+```lua
+-- Example of a complete OpenID Connect authentication URI:
+--
+-- https://accounts.google.com/o/oauth2/v2/auth?
+--  client_id=424911365001.apps.googleusercontent.com&
+--  response_type=code&
+--  scope=openid%20email&
+--  redirect_uri=https://oauth2-login-demo.example.com/code&
+--  state=security_token%3D138r5719ru3e1%26url%3Dhttps://oauth2-login-demo.example.com/myHome&
+--  login_hint=jsmith@example.com&
+--  openid.realm=example.com&
+--  hd=example.com
+--
+-- TODO: support domain/whitelist/blacklist
+local request = http.new()
+request:set_timeout(7000)
+local res, err = request:request_uri(google_discovery_document_uri, {
+  method = "GET",
+  body = ngx.encode_args({
+    client_id     = 424911365001.apps.googleusercontent.com,
+    response_type = code,
+    scope         = "openid email",
+    redirect_uri  = "https://oauth2-login-demo.example.com/code",
+    state         = "TODO",
+    login_hint    = "jsmith@example.com",
+    openid.realm  = "example.com",
+    hd            = "example.com",
+  }),
+  headers = {
+    ["Content-type"] = "application/x-www-form-urlencoded"
+  },
+  ssl_verify = true,
+})
 ```
 
 ## Installation
