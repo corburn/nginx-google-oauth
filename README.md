@@ -9,12 +9,12 @@ Lua module to add Google OAuth to nginx.
 
 Make sure you set up your app in the API Console to enable it to use these protocols and authenticate your users. When a user tries to log in with Google, you need to:
 
-1. [Create an anti-forgery state token]([#1.-Create-an-anti-forgery-state-token])
-2. [Send an authentication request to Google](#2.-Send-an-authentication-request-to-Google)
-3. Confirm the anti-forgery state token
-4. Exchange code for access token and ID token
-5. Obtain user information from the ID token
-6. Authenticate the user
+1. [Create an anti-forgery state token](#1-create-an-anti-forgery-state-token)
+2. [Send an authentication request to Google](#2-send-an-authentication-request-to-google)
+3. [Confirm the anti-forgery state token](#3-confirm-the-anti-forgery-state-token)
+4. [Exchange code for access token and ID token](#4-exchange-code-for-access-token-and-id-token)
+5. [Obtain user information from the ID token](#5-obtain-user-information-from-the-id-token)
+6. [Authenticate the user](#6-authenticate-the-user)
 
 ## 1. Create an anti-forgery state token
 
@@ -35,14 +35,14 @@ The next step is forming an HTTPS `GET` request with the appropriate URI paramet
 
 For a basic request, specify the following parameters:
 
-- client_id, which you obtain from the API Console.
-- response_type, which in a basic request should be code. (Read more at response_type.)
-- scope, which in a basic request should be openid email. (Read more at scope.)
-- redirect_uri should be the HTTP endpoint on your server that will receive the response from Google. You specify this URI in the API Console.
-- state should include the value of the anti-forgery unique session token, as well as any other information needed to recover the context when the user returns to your application, e.g., the starting URL. (Read more at state.)
-- login_hint can be the user's email address or the sub string, which is equivalent to the user's Google ID. If you do not provide a login_hint and the user is currently logged in, the consent screen includes a request for approval to release the user’s email address to your app. (Read more at login_hint.)
-- Use the openid.realm if you are migrating an existing application from OpenID 2.0 to OpenID Connect. For details, see Migrating off of OpenID 2.0.
-- Use the hd parameter to optimize the OpenID Connect flow for users of a particular G Suite domain. (Read more at hd.)
+- `client_id`, which you obtain from the API Console.
+- `response_type`, which in a basic request should be code. (Read more at response_type.)
+- `scope`, which in a basic request should be openid email. (Read more at scope.)
+- `redirect_uri` should be the HTTP endpoint on your server that will receive the response from Google. You specify this URI in the API Console.
+- `state` should include the value of the anti-forgery unique session token, as well as any other information needed to recover the context when the user returns to your application, e.g., the starting URL. (Read more at state.)
+- `login_hint` can be the user's email address or the sub string, which is equivalent to the user's Google ID. If you do not provide a login_hint and the user is currently logged in, the consent screen includes a request for approval to release the user’s email address to your app. (Read more at login_hint.)
+- Use the `openid.realm` if you are migrating an existing application from OpenID 2.0 to OpenID Connect. For details, see Migrating off of OpenID 2.0.
+- Use the `hd` parameter to optimize the OpenID Connect flow for users of a particular G Suite domain. (Read more at hd.)
 
 ```lua
 -- https://developers.google.com/identity/protocols/OpenIDConnect#discovery
