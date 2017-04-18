@@ -109,6 +109,7 @@ For a basic request, specify the following parameters:
 - `login_hint` can be the user's email address or the sub string, which is equivalent to the user's Google ID. If you do not provide a login_hint and the user is currently logged in, the consent screen includes a request for approval to release the user’s email address to your app. (Read more at login_hint.)
 - Use the `openid.realm` if you are migrating an existing application from OpenID 2.0 to OpenID Connect. For details, see Migrating off of OpenID 2.0.
 - Use the `hd` parameter to optimize the OpenID Connect flow for users of a particular G Suite domain. (Read more at hd.)
+- For more options see [Authentication URI Parameters](https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters)
 
 ```lua
 -- Example of a complete OpenID Connect authentication URI:
