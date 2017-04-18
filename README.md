@@ -3,9 +3,7 @@ nginx-google-oauth
 
 Lua module to add Google OAuth to nginx.
 
-# [Google OpenIDConnect](https://developers.google.com/identity/protocols/OpenIDConnect)
-
-# Server flow
+# [Google OpenIDConnect Server Flow](https://developers.google.com/identity/protocols/OpenIDConnect)
 
 Make sure you set up your app in the API Console to enable it to use these protocols and authenticate your users. When a user tries to log in with Google, you need to:
 
@@ -102,13 +100,13 @@ local res, err = request:request_uri(google_discovery_document_uri, {
 For a basic request, specify the following parameters:
 
 - `client_id`, which you obtain from the API Console.
-- `response_type`, which in a basic request should be code. (Read more at response_type.)
-- `scope`, which in a basic request should be openid email. (Read more at scope.)
-- `redirect_uri` should be the HTTP endpoint on your server that will receive the response from Google. You specify this URI in the API Console.
-- `state` should include the value of the anti-forgery unique session token, as well as any other information needed to recover the context when the user returns to your application, e.g., the starting URL. (Read more at state.)
-- `login_hint` can be the user's email address or the sub string, which is equivalent to the user's Google ID. If you do not provide a login_hint and the user is currently logged in, the consent screen includes a request for approval to release the user’s email address to your app. (Read more at login_hint.)
-- Use the `openid.realm` if you are migrating an existing application from OpenID 2.0 to OpenID Connect. For details, see Migrating off of OpenID 2.0.
-- Use the `hd` parameter to optimize the OpenID Connect flow for users of a particular G Suite domain. (Read more at hd.)
+- `response_type`, which in a basic request should be `code`. (Read more at [`response_type`](https://developers.google.com/identity/protocols/OpenIDConnect#response-type).)
+- `scope`, which in a basic request should be `openid email`. (Read more at [`scope`](https://developers.google.com/identity/protocols/OpenIDConnect#scope-param).)
+- `redirect_uri` should be the HTTP endpoint on your server that will receive the response from Google. You specify this URI in the [API Console](https://console.developers.google.com/).
+- `state` should include the value of the anti-forgery unique session token, as well as any other information needed to recover the context when the user returns to your application, e.g., the starting URL. (Read more at [`state`](https://developers.google.com/identity/protocols/OpenIDConnect#state-param).)
+- `login_hint` can be the user's email address or the sub string, which is equivalent to the user's Google ID. If you do not provide a `login_hint` and the user is currently logged in, the consent screen includes a request for approval to release the user’s email address to your app. (Read more at [`login_hint`](https://developers.google.com/identity/protocols/OpenIDConnect#login-hint).)
+- Use the `openid.realm` if you are migrating an existing application from OpenID 2.0 to OpenID Connect. For details, see [Migrating off of OpenID 2.0](https://developers.google.com/identity/protocols/OpenID2Migration).
+- Use the `hd` parameter to optimize the OpenID Connect flow for users of a particular G Suite domain. (Read more at [`hd`](https://developers.google.com/identity/protocols/OpenIDConnect#hd-param).)
 - For more options see [Authentication URI Parameters](https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters)
 
 ```lua
@@ -165,6 +163,49 @@ if want_state != have_state {
   ngx.exit(ngx.HTTP_FORBIDDEN)
 }
 ```
+
+# 6. Authenticate the user
+
+After obtaining user information from the ID token, you should query your app's user database. If the user already exists in your database, you should start an application session for that user.
+
+If the user does not exist in your user database, you should redirect the user to your new-user sign-up flow. You may be able to auto-register the user based on the information you receive from Google, or at the very least you may be able to pre-populate many of the fields that you require on your registration form. In addition to the information in the ID token, you can get additional [user profile information](https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation) at our user profile endpoints.
+
+## ID Token
+```
+{
+ "iss":"accounts.google.com",
+ "at_hash":"HK6E_P6Dh8Y93mRNtsDB1Q",
+ "email_verified":"true",
+ "sub":"10769150350006150715113082367",
+ "azp":"1234987819200.apps.googleusercontent.com",
+ "email":"jsmith@example.com",
+ "aud":"1234987819200.apps.googleusercontent.com",
+ "iat":1353601026,
+ "exp":1353604926,
+ "hd":"example.com"
+}
+ ```
+
+```lua
+-- TODO
+
+local user_token = ngx.encode_base64(ngx.hmac_sha1(secret_key, cb_server_name .. email .. expires)
+
+if claim["email_verified"] == true {}
+if claim["hd"] and claim["hd"] in domains {}
+
+ngx.header["Set-Cookie"] = {
+  "OauthEmail="       .. ngx.escape_uri(email)      .. cookie_tail,
+  "OauthAccessToken=" .. ngx.escape_uri(user_token) .. cookie_tail,
+  "OauthExpires="     .. expires                    .. cookie_tail,
+}
+
+return ngx.redirect(
+```
+
+TODO
+`at_hash` Access token hash. Provides validation that the access token is tied to the identity token. If the ID token is issued with an access token in the server flow, this is always included. This can be used as an alternate mechanism to protect against cross-site request forgery attacks, but if you follow Step 1 and Step 3 it is not necessary to verify the access token.
+
 
 ## Installation
 
