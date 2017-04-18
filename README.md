@@ -146,6 +146,26 @@ local res, err = request:request_uri(google_discovery_document_uri, {
 })
 ```
 
+# 3. Confirm anti-forgery state token
+
+The response is sent to the redirect_uri that you specified in the request. All responses are returned in the query string, as shown below:
+
+```
+-- https://oa2cb.example.com/code?state=security_token%3D138r5719ru3e1%26url%3Dhttps://oa2cb.example.com/myHome&code=4/P7q7W91a-oMsCeLvIaQm6bTrgtp7
+```
+
+On the server, you must confirm that the state received from Google matches the session token you created in Step 1. This round-trip verification helps to ensure that the user, not a malicious script, is making the request.
+
+```lua
+local args = ngx.req.get_uri_args()
+local want_state = ngx.encode_base64(ngx.hmac_sha1(secret_key, cb_server_name .. email .. expires))
+local have_state = args["state"]
+
+if want_state != have_state {
+  ngx.exit(ngx.HTTP_FORBIDDEN)
+}
+```
+
 ## Installation
 
 You can copy `access.lua` to your nginx configurations, or clone the
