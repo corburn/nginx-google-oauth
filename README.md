@@ -31,6 +31,8 @@ local state = ngx.encode_base64(ngx.hmac_sha1(secret_key, cb_server_name .. emai
 
 The next step is forming an HTTPS `GET` request with the appropriate URI parameters. Note the use of HTTPS rather than HTTP in all the steps of this process; HTTP connections are refused. You should retrieve the base URI from the [Discovery document](https://developers.google.com/identity/protocols/OpenIDConnect#discovery) using the key `authorization_endpoint`. The following discussion assumes the base URI is https://accounts.google.com/o/oauth2/v2/auth.
 
+### Discovery Document Request
+
 ```lua
 -- TODO: retrieve base URI from the Google Discovery document
 -- https://developers.google.com/identity/protocols/OpenIDConnect#discovery
@@ -42,6 +44,8 @@ local res, err = request:request_uri(google_discovery_document_uri, {
   method = "GET"
 })
 ```
+
+### Discovery Document Response
 
 ```json
 {
@@ -97,6 +101,8 @@ local res, err = request:request_uri(google_discovery_document_uri, {
 }
 ```
 
+### Authentication Parameters
+
 For a basic request, specify the following parameters:
 
 - `client_id`, which you obtain from the API Console.
@@ -108,6 +114,8 @@ For a basic request, specify the following parameters:
 - Use the `openid.realm` if you are migrating an existing application from OpenID 2.0 to OpenID Connect. For details, see [Migrating off of OpenID 2.0](https://developers.google.com/identity/protocols/OpenID2Migration).
 - Use the `hd` parameter to optimize the OpenID Connect flow for users of a particular G Suite domain. (Read more at [`hd`](https://developers.google.com/identity/protocols/OpenIDConnect#hd-param).)
 - For more options see [Authentication URI Parameters](https://developers.google.com/identity/protocols/OpenIDConnect#authenticationuriparameters)
+
+### Authentication Request
 
 ```lua
 -- Example of a complete OpenID Connect authentication URI:
@@ -144,12 +152,18 @@ local res, err = request:request_uri(google_discovery_document_uri, {
 })
 ```
 
+### Authentication Response
+
+```
+TODO
+```
+
 # 3. Confirm anti-forgery state token
 
 The response is sent to the redirect_uri that you specified in the request. All responses are returned in the query string, as shown below:
 
 ```
--- https://oa2cb.example.com/code?state=security_token%3D138r5719ru3e1%26url%3Dhttps://oa2cb.example.com/myHome&code=4/P7q7W91a-oMsCeLvIaQm6bTrgtp7
+https://oa2cb.example.com/code?state=security_token%3D138r5719ru3e1%26url%3Dhttps://oa2cb.example.com/myHome&code=4/P7q7W91a-oMsCeLvIaQm6bTrgtp7
 ```
 
 On the server, you must confirm that the state received from Google matches the session token you created in Step 1. This round-trip verification helps to ensure that the user, not a malicious script, is making the request.
@@ -170,7 +184,14 @@ After obtaining user information from the ID token, you should query your app's 
 
 If the user does not exist in your user database, you should redirect the user to your new-user sign-up flow. You may be able to auto-register the user based on the information you receive from Google, or at the very least you may be able to pre-populate many of the fields that you require on your registration form. In addition to the information in the ID token, you can get additional [user profile information](https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation) at our user profile endpoints.
 
-## ID Token
+### ID Token Request
+
+```
+TODO
+```
+
+### ID Token Response
+
 ```
 {
  "iss":"accounts.google.com",
