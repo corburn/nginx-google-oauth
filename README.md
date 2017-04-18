@@ -158,7 +158,7 @@ local res, err = request:request_uri(google_discovery_document_uri, {
 TODO
 ```
 
-# 3. Confirm anti-forgery state token
+## 3. Confirm anti-forgery state token
 
 The response is sent to the redirect_uri that you specified in the request. All responses are returned in the query string, as shown below:
 
@@ -178,19 +178,15 @@ if want_state != have_state {
 }
 ```
 
-# 6. Authenticate the user
+## 5. Obtain user information from the ID token
 
-After obtaining user information from the ID token, you should query your app's user database. If the user already exists in your database, you should start an application session for that user.
+An ID Token is a JWT (JSON Web Token), that is, a cryptographically signed Base64-encoded JSON object. Normally, it is critical that you [validate an ID token](https://developers.google.com/identity/protocols/OpenIDConnect#validatinganidtoken) before you use it, but since you are communicating directly with Google over an intermediary-free HTTPS channel and using your client secret to authenticate yourself to Google, you can be confident that the token you receive really comes from Google and is valid. If your server passes the ID token to other components of your app, it is extremely important that the other components [validate the token](https://developers.google.com/identity/protocols/OpenIDConnect#validatinganidtoken) before using it.
 
-If the user does not exist in your user database, you should redirect the user to your new-user sign-up flow. You may be able to auto-register the user based on the information you receive from Google, or at the very least you may be able to pre-populate many of the fields that you require on your registration form. In addition to the information in the ID token, you can get additional [user profile information](https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation) at our user profile endpoints.
+Since most API libraries combine the validation with the work of decoding the base64 and parsing the JSON, you will probably end up validating the token anyway as you access the fields in the ID token.
 
-### ID Token Request
+### An ID token's payload
 
-```
-TODO
-```
-
-### ID Token Response
+An ID token is a JSON object containing a set of name/value pairs. Here’s an example, formatted for readability:
 
 ```
 {
@@ -205,7 +201,15 @@ TODO
  "exp":1353604926,
  "hd":"example.com"
 }
- ```
+```
+
+TODO: Table of ID Token fields
+
+## 6. Authenticate the user
+
+After obtaining user information from the ID token, you should query your app's user database. If the user already exists in your database, you should start an application session for that user.
+
+If the user does not exist in your user database, you should redirect the user to your new-user sign-up flow. You may be able to auto-register the user based on the information you receive from Google, or at the very least you may be able to pre-populate many of the fields that you require on your registration form. In addition to the information in the ID token, you can get additional [user profile information](https://developers.google.com/identity/protocols/OpenIDConnect#obtaininguserprofileinformation) at our user profile endpoints.
 
 ```lua
 -- TODO
