@@ -170,31 +170,23 @@ if want_state != have_state {
 
 You can copy `access.lua` to your nginx configurations, or clone the
 repository. Your installation of nginx must already be built with Lua
-support, and you will need the ``json`` and ``luasec`` modules as well.
+support.
 
-### Ubuntu
+### Dockerfile
 
-You will need to install the following packages.
+```Dockerfile
+FROM alpine:edge
+RUN apk add --no-cache \
+  lua5.1-cjson \
+  lua5.1-resty-http \
+  nginx-mod-http-lua \
+  openssl \
+  ca-certificates
 
+EXPOSE 80 443
+
+CMD ["nginx", "-g", "daemon off"]
 ```
-lua5.1
-liblua5.1-0
-liblua5.1-0-dev
-liblua5.1-sec-dev
-liblua5.1-json
-```
-
-You will also need to download and build the following and link them
-with nginx
-
-```
-ngx_devel_kit
-lua-nginx-module
-```
-
-See ``/chef/source-lua.rb`` for a Chef recipe to install nginx and Lua
-with all of the requirements.
-
 
 ## Configuration
 
@@ -203,6 +195,36 @@ included in cookies (and you are presumably protecting something very
 important), it is strongly recommended that you use SSL.
 
 ```
+# Redirect http to https
+server {
+  listen [::]:80 default_server deferred so_keepalive=off fastopen=1024;
+  listen 80 default_server deferred so_keepalive=off fastopen=1024;
+  
+  keepalive_timeout 0;
+  
+  # catch all unless there is a more specific location match
+  location / {
+    return 301 https://$host$request_uri;
+  }
+  
+  # accept Automatic Certificate Management Environment (ACME) verification
+  location /.well-known/acme-challenge/ {
+    root /srv;
+  }
+}
+
+# Drop requests for unknown hosts
+server {
+  listen [::]:443 default_server ssl http2 deferred so_keepalive=off fastopen=1024;
+  listen 443 default_server ssl http2 deferred so_keepalive=off fastopen=1024;
+  
+  include ssl.conf;
+  
+  return 444;
+}
+```
+
+```  
 server {
   server_name supersecret.net;
   listen 443;
